@@ -7,15 +7,16 @@
 
 
 
-void usage(const char *prog) {
-    fprintf(stderr,"Usage: %s -b buffer_size -p [tcp | udp] destination port file\n", prog);
+void usage(int which) {
+    fprintf(stderr,"Usage: %s -b buffer_size -p [tcp | udp] %sport %s\n", which==SENDER?"sender":"receiver",
+            which==SENDER?"destination ":"", which==SENDER?"input_file ":"output_file");
     fprintf(stderr, "Default buffer_size: %d\n", DEFAULT_BUFSIZE);
     fprintf(stderr, "Default protocol: %s\n", DEFAULT_PROTOCOL);
     exit(1);
 }
 
 
-struct Args parse_args(int argc, char *argv[]) {
+struct Args parse_args(int argc, char *argv[], int which) {
     int c;
     struct Args args;
 
@@ -56,8 +57,9 @@ struct Args parse_args(int argc, char *argv[]) {
             exit(1);
         }
 
-    if ( argc-optind == 3 ) {
-        // Assume sender, should only be addr, port and filename left
+    if ( which == SENDER ) {
+        // sender, should only be addr, port and filename left
+        if ( argc-optind != 3 ) usage(which);
 
         args.addr = argv[optind];
 
@@ -72,8 +74,11 @@ struct Args parse_args(int argc, char *argv[]) {
         args.port = atoi(argv[optind+1]);
         args.file = argv[optind+2];
 
-    } else if ( argc-optind == 2 ) {
-            // Assume receiver, should only be port and filename left
+    } else if ( which == RECEIVER ) {
+        // receiver, should only be port and filename left
+
+        if ( argc-optind != 2 ) usage(which);
+
         for (const char *s=argv[optind]; *s!='\0'; ++s)
             if ( !isdigit(*s) ) {
                 fprintf(stderr, "Invalid port\n");
@@ -83,7 +88,11 @@ struct Args parse_args(int argc, char *argv[]) {
         args.port = atoi(argv[optind]);
         args.file = argv[optind+1];
 
-    } else usage(argv[0]);
+    } else {
+        fprintf(stderr, "Unknown program for parse_args\n");
+        exit(1);
+
+    }
 
     //printf("bufsize %d protocol %s addr %s port %d file %s\n", args.bufsize, args.protocol, args.addr, args.port, args.file);
     return args;

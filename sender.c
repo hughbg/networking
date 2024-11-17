@@ -45,6 +45,7 @@ void use_tcp(struct Args args) {
             error(errno, errno, "write");
     }
 
+
     free(buffer);
     close(fd);
     close(sockfd);
@@ -81,7 +82,7 @@ void use_udp(struct Args args) {
 }
 
 int main(int argc, char *argv[]) {
-    struct Args args = parse_args(argc, argv);
+    struct Args args = parse_args(argc, argv, SENDER);
 
     if ( strcmp(args.protocol, "udp") == 0 ) use_udp(args);
     else use_tcp(args);

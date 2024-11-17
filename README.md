@@ -8,18 +8,18 @@ Run `make`.
 ## To use
 
 ```
-sender -b buffer_size -p [tcp | udp] destination port file
+sender -b buffer_size -p [tcp | udp] destination port input_file
 Default buffer_size: 4096
 Default protocol: udp
 ```
 
 The `destination` is a host name or ip address. The `file` is a file to send.
 ```
-receiver -b buffer_size -p [tcp | udp] destination port file
+receiver -b buffer_size -p [tcp | udp] port output_file
 Default buffer_size: 4096
 Default protocol: udp
 ```
-The network input is written to `file`.
+The received data is written to `file`.
 
 First, run `receiver` on the machine you want to send to. Example: `receiver 12345 out.txt`. Then run the sender on the machine you want to send from. Example: `sender 127.0.0.1 12345 bigfile.txt`. Make sure you use the same protocol (tcp/udp) on both machines.
 
