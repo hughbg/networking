@@ -13,13 +13,13 @@ Default buffer_size: 4096
 Default protocol: udp
 ```
 
-The `destination` is a host name or ip address. The `file` is a file to send.
+The `destination` is a host name or ip address. The `input_file` is a file to send.
 ```
 receiver -b buffer_size -p [tcp | udp] port output_file
 Default buffer_size: 4096
 Default protocol: udp
 ```
-The received data is written to `file`.
+The received data is written to `output_file`.
 
 First, run `receiver` on the machine you want to send to. Example: `receiver 12345 out.txt`. Then run the sender on the machine you want to send from. Example: `sender 127.0.0.1 12345 bigfile.txt`. Make sure you use the same protocol (tcp/udp) on both machines.
 
