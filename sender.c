@@ -40,7 +40,7 @@ void use_tcp(struct Args args) {
         fprintf(stderr, "malloc failed\n");
         exit(1);
     }
-    while ( (num=read(fd, buffer, sizeof(args.bufsize))) > 0 ) {
+    while ( (num=read(fd, buffer, args.bufsize)) > 0 ) {
         if ( write(sockfd, buffer, num) == -1 )
             error(errno, errno, "write");
     }
@@ -70,7 +70,7 @@ void use_udp(struct Args args) {
         fprintf(stderr, "malloc failed\n");
         exit(1);
     }
-    while ( (num=read(fd, buffer, sizeof(args.bufsize))) > 0 ) {
+    while ( (num=read(fd, buffer, args.bufsize)) > 0 ) {
         if ( sendto(sockfd, buffer, num, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) == -1 )
             error(errno, errno, "sendto");
     }
