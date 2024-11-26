@@ -5,29 +5,47 @@
 #include <ctype.h>
 #include "parse_args.h"
 
+#define FALSE 0
+#define TRUE 1
 
 
 void usage(int which) {
-    fprintf(stderr,"Usage: %s -b buffer_size -p [tcp | udp] %sport %s\n", which==SENDER?"sender":"receiver",
-            which==SENDER?"destination ":"", which==SENDER?"input_file ":"output_file");
-    fprintf(stderr, "Default buffer_size: %d\n", DEFAULT_BUFSIZE);
-    fprintf(stderr, "Default protocol: %s\n", DEFAULT_PROTOCOL);
+    fprintf(stderr,"Usage: %s [ -h ] [ -b buffer_size ] [ -p TCP|UDP ] %sport %s\n", which==SENDER?"sender":"receiver",
+            which==SENDER?"to_host ":"", which==SENDER?"input_file ":"output_file");
+    if ( which == SENDER )
+        fprintf(stderr, "-h: Prepend a sequence number to each packet (type uint64). Ignored for TCP. Default: FALSE\n");
+    else
+        fprintf(stderr, "-h: Expect a sequence number prepended to each packet (type uint64). Ignored for TCP. Default: FALSE\n");
+    fprintf(stderr, "-b: Size of network packet (excluding sequence number). Default: %d\n", DEFAULT_BUFSIZE);
+    fprintf(stderr, "-p: Network protocol, TCP or UDP. Default: %s\n", DEFAULT_PROTOCOL);
     exit(1);
 }
 
+const char *lower_str(const char *old_str) {
+    int len = strlen(old_str);
+    char *new_str = malloc(len+1);
+    for (int i=0; i<len+1; ++i)
+        new_str[i] = tolower(old_str[i]);
+
+    return new_str;
+}
 
 struct Args parse_args(int argc, char *argv[], int which) {
     int c;
     struct Args args;
 
-    args.protocol = DEFAULT_PROTOCOL;
+    args.sequence_header = FALSE;
+    args.protocol = lower_str(DEFAULT_PROTOCOL);   // internally just operate with lower case version
     args.bufsize = DEFAULT_BUFSIZE;
     args.addr = "none";
 
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "b:p:")) != -1)
+    while ((c = getopt(argc, argv, "hb:p:")) != -1)
         switch (c) {
+        case 'h':
+            args.sequence_header = TRUE;
+            break;
         case 'b':
             // check bufsize
             for (const char *s=optarg; *s!='\0'; ++s)
@@ -39,12 +57,12 @@ struct Args parse_args(int argc, char *argv[], int which) {
             break;
         case 'p':
             // check protocol
-            if ( strcmp(optarg, "tcp") == 0 || strcmp(optarg, "udp") == 0 )
-                args.protocol = optarg;
-            else {
+            if ( strcmp(optarg, "tcp") == 0 || strcmp(optarg, "udp") == 0 || strcmp(optarg, "TCP") == 0 || strcmp(optarg, "UDP") ) {
+                args.protocol = lower_str(optarg);
+            } else {
                     fprintf(stderr, "Invalid protocol: %s\n", optarg);
                     exit(1);
-                }
+            }
 
             break;
         case '?':
@@ -94,6 +112,6 @@ struct Args parse_args(int argc, char *argv[], int which) {
 
     }
 
-    //printf("bufsize %d protocol %s addr %s port %d file %s\n", args.bufsize, args.protocol, args.addr, args.port, args.file);
+    printf("sequence header %s bufsize %lu protocol %s addr %s port %d file %s\n", args.sequence_header?"TRUE":"FALSE", args.bufsize, args.protocol, args.addr, args.port, args.file);
     return args;
 }
