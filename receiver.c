@@ -43,13 +43,13 @@ void use_udp(struct Args args) {
         if ( num == 0 ) break;
         if ( args.sequence_header )  {
             uint64_t sequence_number = *((uint64_t*)buffer);
-            printf("sequence number %lu num %lu\n", sequence_number, num);
+            //printf("sequence number %lu num %lu\n", sequence_number, num);
             if ( sequence_number != last_sequence_number+1 )
                 fprintf(stderr, "sequence error: last was %lu just got %lu\n", last_sequence_number, sequence_number);
             last_sequence_number = sequence_number;
         }
 
-        printf("write %lu\n", args.sequence_header?num-sizeof(uint64_t):num);
+        //printf("write %lu\n", args.sequence_header?num-sizeof(uint64_t):num);
         if ( write(fd, args.sequence_header?buffer+sizeof(uint64_t):buffer, args.sequence_header?num-sizeof(uint64_t):num) == -1 )
             error(errno, errno, "write");
     }

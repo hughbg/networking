@@ -80,7 +80,7 @@ void use_udp(struct Args args) {
             *((uint64_t*)buffer) = sequence_number;
             ++sequence_number;
         }
-        printf("sequence %lu sent %lu\n", *((uint64_t*)buffer), num);
+        //printf("sequence %lu sent %lu\n", *((uint64_t*)buffer), num);
         if ( sendto(sockfd, buffer, args.sequence_header?num+sizeof(uint64_t):num, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) == -1 )
             error(errno, errno, "sendto");
     }
