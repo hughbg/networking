@@ -16,7 +16,8 @@ void use_udp(struct Args args) {
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in src_addr;
     socklen_t src_len = sizeof(src_addr);
-    uint64_t last_sequence_number=-1;
+    uint64_t last_sequence_number;
+    int counting=FALSE;
     byte *buffer;
 
 
@@ -44,8 +45,10 @@ void use_udp(struct Args args) {
         if ( args.sequence_header )  {
             uint64_t sequence_number = *((uint64_t*)buffer);
             //printf("sequence number %lu num %lu\n", sequence_number, num);
-            if ( sequence_number != last_sequence_number+1 )
-                fprintf(stderr, "sequence error: last was %lu just got %lu\n", last_sequence_number, sequence_number);
+            if ( counting )
+                if ( sequence_number != last_sequence_number+1 )
+                    fprintf(stderr, "sequence error: last was %lu just got %lu\n", last_sequence_number, sequence_number);
+            else counting = TRUE;
             last_sequence_number = sequence_number;
         }
 
