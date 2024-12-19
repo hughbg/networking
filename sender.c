@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <time.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +19,7 @@ void use_tcp(struct Args args) {
     struct hostent *server;
     int fd;
     int num;
-    void *buffer;
+    byte *buffer;
 
     if ( (sockfd=socket(AF_INET, SOCK_STREAM, 0)) == -1 )
         error(errno, errno, "socket");
@@ -57,6 +58,7 @@ void use_udp(struct Args args) {
     byte *buffer;
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in dest_addr;
+    struct timespec timer;
     int sequence_number = 0;
 
     dest_addr.sin_family = AF_INET;
@@ -73,7 +75,8 @@ void use_udp(struct Args args) {
         exit(1);
     }
 
-
+    timer.tv_sec = 0;
+    timer.tv_nsec = 1000000;
     ssize_t num;
     while ( (num=read(fd, args.sequence_header?buffer+sizeof(uint64_t):buffer, args.bufsize)) > 0 ) {
         if ( args.sequence_header ) {
@@ -83,6 +86,7 @@ void use_udp(struct Args args) {
         //printf("sequence %lu sent %lu\n", *((uint64_t*)buffer), num);
         if ( sendto(sockfd, buffer, args.sequence_header?num+sizeof(uint64_t):num, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) == -1 )
             error(errno, errno, "sendto");
+        nanosleep(&timer, NULL);
     }
 
     free(buffer);

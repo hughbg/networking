@@ -1,16 +1,18 @@
 #include <stdint.h>
+#include <stdbool.h>
 #define DEFAULT_BUFSIZE 4096
 #define DEFAULT_PROTOCOL "UDP"
-#define SENDER 8204
-#define RECEIVER 6505
+
+enum Program { SENDER, RECEIVER };
 
 struct Args {
-    uint64_t sequence_header;
     int port;
     size_t bufsize;
     const char *addr;
     const char *protocol;   // TCP or UDP so has to be 3-character string
     const char *file;   // input or output depending on sender/receiver
+    bool peek;          // receiver only
+    bool sequence_header; 
 };
 
-extern struct Args parse_args(int argc, char *argv[], int);
+extern struct Args parse_args(int argc, char *argv[], enum Program);

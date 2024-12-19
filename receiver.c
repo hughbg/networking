@@ -7,8 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "parse_args.h"
-
-#define TRUE 1
+#include "vdif_lib.h"
 
 typedef unsigned char byte;
 
@@ -17,7 +16,7 @@ void use_udp(struct Args args) {
     struct sockaddr_in src_addr;
     socklen_t src_len = sizeof(src_addr);
     uint64_t last_sequence_number;
-    int counting=FALSE;
+    bool counting=false;
     byte *buffer;
 
 
@@ -45,11 +44,18 @@ void use_udp(struct Args args) {
         if ( args.sequence_header )  {
             uint64_t sequence_number = *((uint64_t*)buffer);
             //printf("sequence number %lu num %lu\n", sequence_number, num);
-            if ( counting )
+            if ( counting ) {
                 if ( sequence_number != last_sequence_number+1 )
                     fprintf(stderr, "sequence error: last was %lu just got %lu\n", last_sequence_number, sequence_number);
-            else counting = TRUE;
+            } else counting = true;
             last_sequence_number = sequence_number;
+        }
+
+        if ( args.peek ) {
+            unsigned *vheader = (unsigned*)(args.sequence_header?buffer+sizeof(uint64_t):buffer);
+            struct Header header = parse_header(vheader);
+            print_header(header);
+            exit(0);
         }
 
         //printf("write %lu\n", args.sequence_header?num-sizeof(uint64_t):num);
@@ -68,7 +74,7 @@ void use_tcp(struct Args args) {
     socklen_t clilen;
     struct sockaddr_in serv_addr, cli_addr;
     int n;
-    void *buffer;
+    byte *buffer;
 
     if ( (sockfd=socket(AF_INET, SOCK_STREAM, 0)) == -1 )
        error(errno, errno, "socket");
@@ -95,12 +101,20 @@ void use_tcp(struct Args args) {
     }
 
     for (;;) {
-        if ( (n=read(newsockfd,buffer, sizeof(buffer))) == -1 )
+        if ( (n=read(newsockfd, buffer, args.bufsize)) == -1 )
             error(errno, errno, "read");
 
-       if ( n == 0 ) break;
-       if ( write(fd, buffer, n) == -1 )
-           error(errno, errno, "write");
+        if ( n == 0 ) break;
+
+        if ( args.peek ) {
+            unsigned *vheader = (unsigned*)buffer;        // can't use sequence numbers with tcp, so no check
+            struct Header header = parse_header(vheader);
+            print_header(header);
+            exit(0);
+        }
+
+        if ( write(fd, buffer, n) == -1 )
+            error(errno, errno, "write");
     }
 
     free(buffer);
@@ -108,6 +122,7 @@ void use_tcp(struct Args args) {
     close(newsockfd);
     close(sockfd);
 }
+
 int main(int argc, char *argv[]) {
     struct Args args = parse_args(argc, argv, RECEIVER);
 

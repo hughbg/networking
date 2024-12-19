@@ -5,19 +5,20 @@
 #include <ctype.h>
 #include "parse_args.h"
 
-#define FALSE 0
-#define TRUE 1
 
-
-void usage(int which) {
+void usage(enum Program which) {
     fprintf(stderr,"Usage: %s [ -h ] [ -b buffer_size ] [ -p TCP|UDP ] %sport %s\n", which==SENDER?"sender":"receiver",
             which==SENDER?"to_host ":"", which==SENDER?"input_file ":"output_file");
     if ( which == SENDER )
         fprintf(stderr, "-h: Prepend a sequence number to each packet (type uint64). Ignored for TCP. Default: FALSE\n");
     else
-        fprintf(stderr, "-h: Expect a sequence number prepended to each packet (type uint64). Ignored for TCP. Default: FALSE\n");
+        fprintf(stderr, "-h: Expect a sequence number prepended to each packet (type uint64). Cannot be used with TCP. Default: FALSE\n");
     fprintf(stderr, "-b: Size of network packet (excluding sequence number). Default: %d\n", DEFAULT_BUFSIZE);
     fprintf(stderr, "-p: Network protocol, TCP or UDP. Default: %s\n", DEFAULT_PROTOCOL);
+    if ( which == RECEIVER ) {
+        fprintf(stderr, "-k: VDIF STREAM ONLY. Peek at the input stream and report the first VDIF header. Do not write to file but exit. Default: FALSE\n");
+        fprintf(stderr, "    VDIF frames must be sent individually in each network packet, so that the header is at the front of every packet.\n");
+    }
     exit(1);
 }
 
@@ -30,21 +31,29 @@ const char *lower_str(const char *old_str) {
     return new_str;
 }
 
-struct Args parse_args(int argc, char *argv[], int which) {
+struct Args parse_args(int argc, char *argv[], enum Program which) {
     int c;
     struct Args args;
 
-    args.sequence_header = FALSE;
+    args.sequence_header = args.peek = false;
     args.protocol = lower_str(DEFAULT_PROTOCOL);   // internally just operate with lower case version
     args.bufsize = DEFAULT_BUFSIZE;
     args.addr = "none";
 
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "hb:p:")) != -1)
+    while ((c = getopt(argc, argv, "hkb:p:")) != -1)
         switch (c) {
         case 'h':
-            args.sequence_header = TRUE;
+            args.sequence_header = true;
+            break;
+        case 'k':
+            if ( which == RECEIVER )
+                args.peek = true;
+            else {
+                fprintf(stderr, "Unknown option -k.\n");
+                exit(1);
+            }
             break;
         case 'b':
             // check bufsize
@@ -69,11 +78,16 @@ struct Args parse_args(int argc, char *argv[], int which) {
             if (optopt == 'b' || optopt == 'p' )
                 fprintf(stderr, "Option -%c requires an argument.\n", optopt);
             else
-                fprintf(stderr, "Unknown option `-%c'.\n", optopt);
+                fprintf(stderr, "Unknown option -%c.\n", optopt);
             exit(1);
         default:
             exit(1);
         }
+
+    if ( args.sequence_header && strcmp(args.protocol, "tcp") == 0 ) {
+        fprintf(stderr, "sequence numbering (-h) cannot be used with TCP\n");
+        exit(1);
+    }
 
     if ( which == SENDER ) {
         // sender, should only be addr, port and filename left
