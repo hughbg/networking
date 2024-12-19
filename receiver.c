@@ -27,8 +27,10 @@ void use_udp(struct Args args) {
         error(errno, errno, "bind");
 
     int fd;
-    if ( (fd=open(args.file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR)) == -1 )
-        error(errno, errno, "open: %s", args.file);
+    if ( !args.peek ) {
+        if ( (fd=open(args.file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR)) == -1 )
+            error(errno, errno, "open: %s", args.file);
+    }
 
     if ( (buffer=malloc(args.sequence_header?args.bufsize+sizeof(uint64_t):args.bufsize)) == NULL ) {
         fprintf(stderr, "malloc failed\n");
@@ -92,8 +94,10 @@ void use_tcp(struct Args args) {
         error(errno, errno, "accept");
 
     int fd;
-    if ( (fd=open(args.file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR)) == -1 )
-        error(errno, errno, "open: %s", args.file);
+    if ( !args.peek ) {
+        if ( (fd=open(args.file, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR)) == -1 )
+            error(errno, errno, "open: %s", args.file);
+    }
 
     if ( (buffer=malloc(args.bufsize)) == NULL ) {
         fprintf(stderr, "malloc failed\n");
