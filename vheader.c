@@ -37,16 +37,16 @@ int main(int argc, char *argv[]) {
                         return 1;
                 }
 
-                /*
-                for (int w=0; w<4; ++w) {
+                
+                /*for (int w=0; w<4; ++w) {
                 unsigned word = ((unsigned*)data)[w];
-
+                printf("word %u\n", word);
                 for (int i=0; i<8; ++i) {
                         printf("%u\n", (word >> i*4) & 0x3);
                 }
                 }
-                return 0;
-                */
+                return 0;*/
+                
 
 
         }
