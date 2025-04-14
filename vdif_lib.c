@@ -17,10 +17,11 @@ struct Header parse_header(unsigned *header) {
         h.bits_per_sample = ((header[3] >> 26) & 0x1f) + 1;
         h.thread_id = (header[3] >> 16) & 0x3ff;
         h.station_id = header[3] & 0xffff;
+        h.extended_data_version = header[4] >> 24;
         return h;
 }
 
 void print_header(struct Header h) {
-        printf("valid %u leg %u s_from_ref_epoch %u unass %u ref_epoch %u frame_num %u vers %u num_ch %u frame_len %u data_t %u num_bits %u thr_id %u stat_id %u\n",
-               h.validity, h.legacy, h.seconds_from_ref_epoch, h.unassigned, h.ref_epoch, h.data_frame_number, h.version, h.num_channels, h.data_frame_length, h.data_type, h.bits_per_sample, h.thread_id, h.station_id);
+        printf("valid %u leg %u s_from_ref_epoch %u unass %u ref_epoch %u frame_num %u vers %u num_ch %u frame_len %u data_t %u num_bits %u thr_id %u stat_id %u edv %u\n",
+               h.validity, h.legacy, h.seconds_from_ref_epoch, h.unassigned, h.ref_epoch, h.data_frame_number, h.version, h.num_channels, h.data_frame_length, h.data_type, h.bits_per_sample, h.thread_id, h.station_id, h.extended_data_version);
 }

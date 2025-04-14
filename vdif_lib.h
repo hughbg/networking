@@ -14,6 +14,7 @@ struct Header {
         unsigned bits_per_sample;
         unsigned thread_id;
         unsigned station_id;
+        unsigned extended_data_version;
 };
 
 // Read and structure header values
