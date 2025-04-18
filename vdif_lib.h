@@ -1,3 +1,4 @@
+#define HEADER_SIZE 32    // BYTES
 
 // Interesting things from the VDIF header
 struct Header {
@@ -9,7 +10,7 @@ struct Header {
         unsigned data_frame_number;
         unsigned version;
         unsigned num_channels;
-        unsigned data_frame_length;
+        unsigned data_frame_length;  // BYTES
         unsigned data_type;
         unsigned bits_per_sample;
         unsigned thread_id;
@@ -22,3 +23,5 @@ extern struct Header parse_header(unsigned *header);
 
 // Print header in known text format that can be piped into other tools
 extern void print_header(struct Header h);
+
+void set_vdif_header(struct Header h, unsigned *header);

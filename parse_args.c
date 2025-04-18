@@ -10,7 +10,7 @@ void usage(enum Program which) {
     fprintf(stderr,"Usage: %s [ -h ] [ -b buffer_size ] [ -p TCP|UDP ] %sport %s\n", which==SENDER?"sender":"receiver",
             which==SENDER?"to_host ":"", which==SENDER?"input_file ":"output_file");
     if ( which == SENDER )
-        fprintf(stderr, "-h: Prepend a sequence number to each packet (type uint64). Ignored for TCP. Default: FALSE\n");
+        fprintf(stderr, "-h: Prepend a sequence number to each packet (type uint64). Cannot be used with TCP. Default: FALSE\n");
     else
         fprintf(stderr, "-h: Expect a sequence number prepended to each packet (type uint64). Cannot be used with TCP. Default: FALSE\n");
     fprintf(stderr, "-b: Size of network packet (excluding sequence number). Default: %d\n", DEFAULT_BUFSIZE);
