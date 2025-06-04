@@ -67,7 +67,7 @@ void use_udp(struct Args args) {
 
 
     free(buffer);
-    close(fd);
+    if ( !args.peek ) close(fd);
     close(sockfd);
 }
 
@@ -122,7 +122,7 @@ void use_tcp(struct Args args) {
     }
 
     free(buffer);
-    close(fd);
+    if ( !args.peek ) close(fd);
     close(newsockfd);
     close(sockfd);
 }

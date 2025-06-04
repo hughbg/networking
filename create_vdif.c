@@ -32,6 +32,7 @@ struct Args {
     const char *host, *file;
     unsigned port;
     unsigned sleep;
+    int sleep_specified;
 };
 
 void check_unsigned(const char *s, const char *message) {
@@ -64,7 +65,7 @@ struct Args parse_args(int argc, char *argv[]) {
     int c;
     struct Args args;
 
-    bzero(&args, sizeof(args));    // sets numbers to 0 and strings to NULL
+    bzero(&args, sizeof(args));    // sets numbers to 0 and strings to NULL and booleans to FALSE
     args.num_channels = 1;
     args.num_threads = 1;
     args.duration = 30;
@@ -96,6 +97,7 @@ struct Args parse_args(int argc, char *argv[]) {
             // check sleep
             check_unsigned(optarg, "Invalid sleep usec");
             args.sleep = atoi(optarg);
+            args.sleep_specified = TRUE;
             break;
         case 'r':
             // check ref_epoch
@@ -134,11 +136,14 @@ struct Args parse_args(int argc, char *argv[]) {
             fprintf(stderr, "Port must be > 1023\n");
             exit(1);
         }
+        printf("host %s port %u num_channels %u num_threads %u duration %u ref_epoch %u seconds_from_ref_epoch %u\n",
+               args.host, args.port, args.num_channels, args.num_threads, args.duration, args.ref_epoch, args.seconds_from_ref_epoch);
 
     } else {
         usage();
 
     }
+
 
     return args;
 }
@@ -162,7 +167,7 @@ int main(int argc, char *argv[]) {
     unsigned frames_per_second = SAMPLING_RATE/samples_per_frame;
     printf("Frames per second %u\n", frames_per_second);
     float frame_time = 1/(float)frames_per_second;
-    printf("Frame time %.2f usec\n", frame_time*1000000);
+    printf("Theoretical frame time %.2f usec\n", frame_time*1000000);
     unsigned total_frames = frames_per_second*args.num_threads*args.duration;
     printf("Total frames %u\n", total_frames);
 
@@ -184,8 +189,8 @@ int main(int argc, char *argv[]) {
         to_file = FALSE;
 
         timer.tv_sec = 0;
-        if ( args.sleep == 0 ) timer.tv_nsec = (int)(frame_time*1000000000*2/3);    // 2/3 is a guess
-        else timer.tv_nsec = args.sleep*1000;    // nanosec from usec
+        if ( args.sleep_specified ) timer.tv_nsec = args.sleep*1000;    // nanosec from usec
+        else timer.tv_nsec = (int)(frame_time*1000000000*2/3);    // 2/3 is a guess
 
     } else {
         fprintf(stderr, "Something has gone badly wrong - unspecified output\n");
@@ -238,7 +243,7 @@ int main(int argc, char *argv[]) {
                 } else {
                     if ( sendto(fd, buffer, buf_size, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) == -1 )
                         error(errno, errno, "sendto");
-                    nanosleep(&timer, NULL);
+                    if ( args.sleep != 0 ) nanosleep(&timer, NULL);
                     ++(*sequence_number);
 
                 }
