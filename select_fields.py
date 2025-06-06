@@ -3,7 +3,10 @@ import sys
 # Do a select on the VDIF header fields output by vheader
 
 if len(sys.argv) != 2:
-    print("Usage: select_fields.py LIST_OF_FIELDS  (comma separated)")
+    print("Usage: select_fields.py LIST_OF_HEADER_FIELD_NAMES (comma separated)")
+    print("\nSelect header values from the output of vheader, based on the short field name. Example:")
+    print("\n  $ ./vheader x.vdif | head -1  | python select_fields.py num_ch,num_bits")
+    print("  num_ch 2 num_bits 2")
     exit(1)
     
 fields = sys.argv[1].split(",")

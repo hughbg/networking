@@ -5,18 +5,22 @@ Send and receive files over the network via TCP and UDP.
 
 Run `make`.
 
-## To use
+## To use sender and receiver
 
 ```
 Usage: sender [ -h ] [ -b buffer_size ] [ -p TCP|UDP ] to_host port input_file
--h: Prepend a sequence number to each packet (type uint64). Ignored for TCP. Default: FALSE
--b: Size of network packet (excluding sequence number). Default: 4096
+
+Send a vdif file to the network.
+-h: Prepend a sequence number to each packet (type uint64). Cannot be used with TCP. Default: FALSE
+-b: Size of network packet (excluding sequence number). Default: 4096 (To do: fix to VDIF frame size)
 -p: Network protocol, TCP or UDP. Default: UDP
 ```
 
 The `to_host` is a host name or ip address. The `input_file` is a file to send.
 ```
 Usage: receiver [ -h ] [ -b buffer_size ] [ -p TCP|UDP ] port output_file
+
+Receive a VDIF stream transmitted over the network and write it to a file.
 -h: Expect a sequence number prepended to each packet (type uint64). Cannot be used with TCP. Default: FALSE
 -b: Size of network packet (excluding sequence number). Default: 4096
 -p: Network protocol, TCP or UDP. Default: UDP
@@ -31,3 +35,6 @@ First, run `receiver` on the machine you want to send to. Example: `receiver 123
 
 `sender` can be used to send content to  programs other than `receiver`. `sender` will terminate when all of the file is sent. When  `receiver` is used with TCP, it will terminate when `sender` terminates, because the socket is closed. When `receiver` is used with UDP, it will not terminate, and you have to Ctrl-C it. This is because UDP is not connection-oriented. A way round this would be to send some EOF marker to `receiver`, but such a marker may confuse other programs that you want to use with `sender`.
 
+## To use other programs
+
+All programs will print a usage if you run them with no arguments.
