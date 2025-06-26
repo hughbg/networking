@@ -7,13 +7,14 @@
 
 
 void usage(enum Program which) {
-    fprintf(stderr,"Usage: %s [ -h ] [ -b buffer_size ] [ -p TCP|UDP ] %sport %s\n\n", which==SENDER?"sender":"receiver",
-            which==SENDER?"to_host ":"", which==SENDER?"input_file ":"output_file");
+    fprintf(stderr,"Usage: %s [ -h ] [ -b buffer_size ] [ -p TCP|UDP ] %s %sport %s\n\n", which==SENDER?"sender":"receiver",
+            which==SENDER?"[ -u sleeptime ]":"", which==SENDER?"to_host ":"", which==SENDER?"input_file ":"output_file");
     if ( which == SENDER ) fprintf(stderr, "Send a vdif file to the network.\n");
     else fprintf(stderr, "Receive a VDIF stream transmitted over the network and write it to a file.\n");
-    if ( which == SENDER )
+    if ( which == SENDER ) {
         fprintf(stderr, "-h: Prepend a sequence number to each packet (type uint64). Cannot be used with TCP. Default: FALSE\n");
-    else
+        fprintf(stderr, "-u: time to sleep in between sending frames, in usec (type unsigned). Default: 0\n");
+    } else
         fprintf(stderr, "-h: Expect a sequence number prepended to each packet (type uint64). Cannot be used with TCP. Default: FALSE\n");
     fprintf(stderr, "-b: Size of network packet (excluding sequence number). Default: %d %s\n", DEFAULT_BUFSIZE,
 		    which==SENDER?"(To do: fix to VDIF frame size)":"");
@@ -42,10 +43,11 @@ struct Args parse_args(int argc, char *argv[], enum Program which) {
     args.protocol = lower_str(DEFAULT_PROTOCOL);   // internally just operate with lower case version
     args.bufsize = DEFAULT_BUFSIZE;
     args.addr = "none";
+    args.sleep = 0;
 
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "hkb:p:")) != -1)
+    while ((c = getopt(argc, argv, "hkb:p:u:")) != -1)
         switch (c) {
         case 'h':
             args.sequence_header = true;
@@ -77,8 +79,22 @@ struct Args parse_args(int argc, char *argv[], enum Program which) {
             }
 
             break;
-        case '?':
-            if (optopt == 'b' || optopt == 'p' )
+        case 'u':
+            if ( which == SENDER ) {
+            // check sleep
+              for (const char *s=optarg; *s!='\0'; ++s)
+                if ( !isdigit(*s) ) {
+                    fprintf(stderr, "Invalid sleep time\n");
+                    exit(1);
+                }
+                args.sleep = atoi(optarg);
+            } else {
+                fprintf(stderr, "Unknown option -u.\n");
+                exit(1);
+            }
+            break;
+         case '?':
+            if (optopt == 'b' || optopt == 'p' || optopt == 'u')
                 fprintf(stderr, "Option -%c requires an argument.\n", optopt);
             else
                 fprintf(stderr, "Unknown option -%c.\n", optopt);
@@ -129,6 +145,10 @@ struct Args parse_args(int argc, char *argv[], enum Program which) {
 
     }
 
-    printf("sequence header %s bufsize %lu protocol %s addr %s port %d file %s\n", args.sequence_header?"TRUE":"FALSE", args.bufsize, args.protocol, args.addr, args.port, args.file);
+    if ( which == SENDER )
+        printf("sequence header %s bufsize %lu protocol %s sleeptime %d addr %s port %d file %s\n", args.sequence_header?"TRUE":"FALSE", args.bufsize, args.protocol, args.sleep, args.addr, args.port, args.file);
+    else
+        printf("sequence header %s bufsize %lu protocol %s addr %s port %d file %s\n", args.sequence_header?"TRUE":"FALSE", args.bufsize, args.protocol, args.addr, args.port, args.file);
+
     return args;
 }

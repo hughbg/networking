@@ -31,8 +31,8 @@ struct Args {
     unsigned seconds_from_ref_epoch;    //-s
     const char *host, *file;
     unsigned port;
-    unsigned switcheroo;
-    unsigned sleep;
+    unsigned switcheroo;        // -x
+    unsigned sleep;             // -u
     int sleep_specified;
 };
 
@@ -289,6 +289,7 @@ int main(int argc, char *argv[]) {
 
         if ( skipping_this_second(args.switcheroo, second) ) {
             //printf("skip second %u\n", second);
+            printf("Discarding packets for second %u\n", second);
             sleep(1);
         }
 

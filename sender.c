@@ -76,7 +76,8 @@ void use_udp(struct Args args) {
     }
 
     timer.tv_sec = 0;
-    timer.tv_nsec = 1000000;
+    timer.tv_nsec = args.sleep*1000;    // nanosec from usec
+
     ssize_t num;
     while ( (num=read(fd, args.sequence_header?buffer+sizeof(uint64_t):buffer, args.bufsize)) > 0 ) {
         if ( args.sequence_header ) {
@@ -86,7 +87,7 @@ void use_udp(struct Args args) {
         //printf("sequence %lu sent %lu\n", *((uint64_t*)buffer), num);
         if ( sendto(sockfd, buffer, args.sequence_header?num+sizeof(uint64_t):num, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) == -1 )
             error(errno, errno, "sendto");
-        nanosleep(&timer, NULL);
+        if ( args.sleep > 0 ) nanosleep(&timer, NULL);
     }
 
     free(buffer);

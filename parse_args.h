@@ -12,6 +12,7 @@ struct Args {
     const char *protocol;   // TCP or UDP so has to be 3-character string
     const char *file;   // input or output depending on sender/receiver
     bool peek;          // receiver only
+    unsigned sleep;     // sender only
     bool sequence_header; 
 };
 
